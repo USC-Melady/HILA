@@ -77,7 +77,7 @@ These include the standard reasoning / mathematical / problem-solving datasets u
 
 ### Human-Feedback-Based Dataset
 
-In addition to standard public benchmarks, we also construct a **human-feedback-based dataset** tailored to the HILA training pipeline. This dataset captures expert intervention signals and is used to support metacognitive policy learning and continual improvement.
+In addition to standard public benchmarks, we also construct a **human-feedback-based dataset** tailored to the HILA evaluation pipeline. This dataset captures expert intervention signals and is used to support metacognitive policy learning and continual improvement.
 
 - **Human-feedback dataset**:  
   [https://drive.google.com/drive/folders/1divi-1z-ypH6FVgDYQMl9diaUtQOG4Bg?usp=drive_link](https://drive.google.com/drive/folders/1divi-1z-ypH6FVgDYQMl9diaUtQOG4Bg?usp=drive_link)
@@ -351,7 +351,6 @@ A typical command structure looks like:
 ```bash
 python3 train_main.py \
   --trainer sft \
-  --train_jsonl ./sft_data/data.jsonl \
   --init_adapter "" \
   --output_dir outputs/sft_llama_3B \
   --model meta-llama/Llama-3.2-3B-Instruct \
