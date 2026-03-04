@@ -77,7 +77,7 @@ These include the standard reasoning / mathematical / problem-solving datasets u
 
 ### Human-Feedback-Based Dataset
 
-In addition to standard public benchmarks, we also construct a **human-feedback-based dataset** tailored to the HILA evaluation pipeline. This dataset captures expert intervention signals and is used to support metacognitive policy learning and continual improvement.
+In addition to standard public benchmarks, we also construct a **human-feedback-based dataset** tailored to the HILA evaluation pipeline. This dataset captures expert intervention signals and is used to support "Real Human-in-the-loop" settings.
 
 - **Human-feedback dataset**:  
   [https://drive.google.com/drive/folders/1divi-1z-ypH6FVgDYQMl9diaUtQOG4Bg?usp=drive_link](https://drive.google.com/drive/folders/1divi-1z-ypH6FVgDYQMl9diaUtQOG4Bg?usp=drive_link)
