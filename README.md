@@ -64,23 +64,23 @@ This repository contains the official implementation, datasets, checkpoints, and
   - checkpoint-based evaluation and experimentation.
 
 ---
-
 ## 📂 Datasets
 
 ### Public Benchmark Datasets
 
-The core benchmark datasets used in our experiments can be obtained directly from **Hugging Face**:
+Due to licensing/copyright restrictions, we **cannot redistribute** some of the original benchmark datasets used in our experiments. Instead, we rely on the official releases hosted on **Hugging Face**, and you can download the required datasets directly from there:
 
-- 🤗 Hugging Face: [https://huggingface.co/](https://huggingface.co/)
+- 🤗 **Hugging Face**: https://huggingface.co/
 
-These include the standard reasoning / mathematical / problem-solving datasets used throughout our evaluation pipeline. Please download the relevant datasets and place them under your local data directory as needed by the provided scripts.
+These include the standard reasoning / mathematical / problem-solving benchmarks used throughout our evaluation pipeline. Please fetch the relevant datasets from Hugging Face and place them under your local `data/` directory following the expected folder structure of the provided scripts.
+
+To help you quickly verify that the pipeline runs end-to-end, we also provide a demo dataset on **[Google Drive](https://drive.google.com/drive/folders/1XrzsCG8cg9xU0wTYhVm4eCQvPA6BO1YY?usp=drive_link)** that can be used as a lightweight sanity-check.
 
 ### Human-Feedback-Based Dataset
 
-In addition to standard public benchmarks, we also construct a **human-feedback-based dataset** tailored to the HILA evaluation pipeline. This dataset captures expert intervention signals and is used to support "Real Human-in-the-loop" settings.
+In addition to public benchmarks, we construct a **human-feedback-based dataset** tailored to the HILA evaluation pipeline, designed to support **real human-in-the-loop** settings. This dataset contains expert intervention signals and annotations produced by **multiple trained PhD-level annotators** we hired for this project:
 
-- **Human-feedback dataset**:  
-  [https://drive.google.com/drive/folders/1divi-1z-ypH6FVgDYQMl9diaUtQOG4Bg?usp=drive_link](https://drive.google.com/drive/folders/1divi-1z-ypH6FVgDYQMl9diaUtQOG4Bg?usp=drive_link)
+- 🧑‍🏫 **Human-feedback dataset**: **[Google Drive](https://drive.google.com/drive/folders/1divi-1z-ypH6FVgDYQMl9diaUtQOG4Bg?usp=drive_link)**
 
 ### Recommended Data Organization
 
