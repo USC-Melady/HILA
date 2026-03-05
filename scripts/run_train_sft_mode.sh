@@ -1,0 +1,14 @@
+python3 -m src.train \
+  --trainer sft \
+  --train_jsonl ./offline_data/sft_gsm8k_gpt4o_withtestall.jsonl \
+  --init_adapter outputs/grpo1/final \
+  --output_dir outputs/sft_llama_8B \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --epochs 4 \
+  --per_device_batch_size 1 \
+  --grad_accum_steps 8 \
+  --lr 1e-4 \
+  --kl_beta 0.0 \
+  --save_every 40 \
+  --max_prompt_tokens 512 \
+  --max_completion_tokens 768
