@@ -74,7 +74,7 @@ Due to licensing/copyright restrictions, we **cannot redistribute** some of the 
 
 These include the standard reasoning / mathematical / problem-solving benchmarks used throughout our evaluation pipeline. Please fetch the relevant datasets from Hugging Face and place them under your local `data/` directory following the expected folder structure of the provided scripts.
 
-To help you quickly verify that the pipeline runs end-to-end, we also provide a demo dataset on **[Google Drive](https://drive.google.com/drive/folders/1XrzsCG8cg9xU0wTYhVm4eCQvPA6BO1YY?usp=drive_link)** that can be used as a lightweight sanity-check.
+To help you quickly verify that the pipeline runs end-to-end, we also provide a demo dataset on [Google Drive](https://drive.google.com/drive/folders/1XrzsCG8cg9xU0wTYhVm4eCQvPA6BO1YY?usp=drive_link) that can be used as a lightweight sanity-check.
 
 ### Human-Feedback-Based Dataset
 
