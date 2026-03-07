@@ -90,7 +90,7 @@ def build_grpo_dataset(
 
     ev_cache: Dict[str, Any] = {}
 
-    # stage initial
+    # initial
     prompts: List[str] = []
     index_map: List[Tuple[int, int]] = []
 

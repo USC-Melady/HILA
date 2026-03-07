@@ -13,7 +13,7 @@ def read_multiline_human_input(
     Read multi-line human input from terminal.
 
     Rules:
-    - If end_marker == "" (default): finish when user enters an empty line.
+    - If end_marker == "": finish when user enters an empty line.
     - Otherwise: finish when user enters a line exactly equal to end_marker.
 
     Returns the joined text.

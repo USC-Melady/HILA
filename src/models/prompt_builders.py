@@ -76,7 +76,7 @@ def _get_sample_meta_field(sample: Any, key: str) -> str:
 def get_human_passive_reasoning(sample: Any) -> str:
     """
     Used when human_passive_flag=True and an agent chooses DEFER.
-    Returns the stored human_reasoning from sample.meta.
+    Returns the human_reasoning from sample.meta.
     """
     return _get_sample_meta_field(sample, "human_reasoning")
 

@@ -82,7 +82,7 @@ def build_policy_prompt(
 def parse_policy(raw: str, self_idx: int, agents: int) -> Tuple[str, Optional[int]]:
     """
     Parse Stage A output into (act, idx).
-    act ∈ {"EVAL","CREATE","DEFER"}.
+    act in {"EVAL","CREATE","DEFER"}.
     """
     s = "" if raw is None else str(raw)
     s = s.strip()

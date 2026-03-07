@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from .constants import DEFAULT_MODEL_ID, API_KEY
 from .token_utils import count_tokens
 from .prompt_builders import (

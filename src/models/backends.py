@@ -25,7 +25,6 @@ class ConsoleHumanBackend(LLMBackend):
     """
     A human backend that prints each prompt to the terminal and waits for real user input.
     """
-
     def __init__(
         self,
         multiline: bool = True,

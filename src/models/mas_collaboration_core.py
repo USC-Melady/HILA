@@ -83,7 +83,7 @@ def run_mas_collaboration(
         for s in samples
     ]
 
-    # stage initial
+    # initial
     prompts: List[str] = []
     index_map: List[Tuple[int, int]] = []
     for i in range(N):

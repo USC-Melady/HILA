@@ -12,6 +12,11 @@ from src.parsing import parse_prediction
 class StructuredDecisionSignalsBuilder:
     """
     Build a compact, rule-based structured summary for meta-policy prompting.
+
+    We organize signals into three cognitive-science-aligned levels:
+      (1) Social consensus cues (group consistency)
+      (2) Metacognitive monitoring cues (self reliability)
+      (3) Metacognitive control & cognitive offloading cues (progress / intervention)
     """
 
     def __init__(self, tokenizer: Optional[Any] = None):
@@ -32,9 +37,11 @@ class StructuredDecisionSignalsBuilder:
         self_prev = self_history[-2] if len(self_history) >= 2 else None
         others_last = [h[-1] if h else "(none)" for h in others_histories]
 
+        # --- parse all latest solutions ---
         self_parsed = self._safe_parse(self_last, task_type, sample_meta)
         others_parsed = [self._safe_parse(t, task_type, sample_meta) for t in others_last]
 
+        # map to global agent indices (others_histories excludes self)
         global_latest: Dict[int, str] = {}
         global_parsed: Dict[int, Dict[str, Any]] = {}
 
@@ -46,15 +53,15 @@ class StructuredDecisionSignalsBuilder:
             global_latest[j] = txt
             global_parsed[j] = parsed
 
+        # collect vote keys across agents
         all_vote_keys: List[str] = []
         for j in range(agents):
             vk = global_parsed[j]["vote_key"]
             if vk:
                 all_vote_keys.append(vk)
 
+        # Social consensus cues
         self_vote_key = self_parsed["vote_key"]
-        self_parsed_ok = bool(self_parsed["ok"])
-        self_has_final_answer = bool(self_parsed["pred_str"])
 
         agree_count = 0
         if self_vote_key:
@@ -67,8 +74,35 @@ class StructuredDecisionSignalsBuilder:
         majority_key, majority_count, second_count = self._majority_info(all_vote_keys)
         majority_margin = max(0, majority_count - second_count)
 
+        # Metacognitive monitoring cues
+        self_parsed_ok = bool(self_parsed["ok"])
+        self_has_final_answer = bool(self_parsed["pred_str"])
+
         same_as_prev = self._same_as_previous_round(self_prev, self_last, task_type, sample_meta)
         completeness = self._reasoning_completeness(self_last)
+
+        # Metacognitive control & offloading cues
+        help_level = self._external_help_level(
+            self_parsed_ok=self_parsed_ok,
+            self_has_final_answer=self_has_final_answer,
+            completeness=completeness,
+            distinct_answers=distinct_answers,
+            majority_margin=majority_margin,
+            agree_count=agree_count,
+            max_others=max_others,
+            same_as_prev=same_as_prev,
+        )
+
+        internal_progress = self._internal_progress_potential(
+            self_parsed_ok=self_parsed_ok,
+            self_has_final_answer=self_has_final_answer,
+            completeness=completeness,
+            distinct_answers=distinct_answers,
+            majority_margin=majority_margin,
+            agree_count=agree_count,
+            max_others=max_others,
+            same_as_prev=same_as_prev,
+        )
 
         trusted_idx, best_other_idx = self._find_best_other_candidate(
             self_vote_key=self_vote_key,
@@ -77,26 +111,17 @@ class StructuredDecisionSignalsBuilder:
             global_parsed=global_parsed,
             other_global_indices=other_global_indices,
         )
+        _ = trusted_idx, best_other_idx  #
 
-        self_vs_best_other = self._compare_self_vs_best_other(
-            self_last=self_last,
-            self_parsed=self_parsed,
-            best_other_idx=best_other_idx,
-            global_latest=global_latest,
-            global_parsed=global_parsed,
-            majority_key=majority_key,
-        )
+        # self_vs_best_other = self._compare_self_vs_best_other(...)
+        # overlap_label = self._text_overlap_label(...)
 
-        overlap_label = "n/a"
-        if best_other_idx is not None:
-            overlap_label = self._text_overlap_label(self_last, global_latest[best_other_idx])
-
+        # --- render labels ---
         agreement_desc = self._agreement_desc(agree_count, max_others)
         diversity_desc = self._diversity_desc(distinct_answers, agents)
         margin_desc = self._majority_margin_desc(majority_margin)
         same_prev_desc = "yes" if same_as_prev else "no"
         parsed_desc = "yes" if (self_parsed_ok and self_has_final_answer) else "no"
-        trusted_desc = f"Agent {trusted_idx}" if trusted_idx is not None else "none"
         guide_desc = "Guidance:\n- Avoid choosing yourself for EVAL unless necessary."
 
         lines = [
@@ -107,13 +132,13 @@ class StructuredDecisionSignalsBuilder:
             f"- Majority margin: {majority_margin} ({margin_desc})",
             f"- Same as previous round: {same_prev_desc}",
             f"- Reasoning completeness: {completeness}",
-            f"- Trusted copy candidate: {trusted_desc}",
-            f"- Self vs best other: {self_vs_best_other}",
-            f"- Text overlap with best other: {overlap_label}",
+            f"- External-help signal: {help_level}",
+            f"- Internal progress potential: {internal_progress}",
         ]
         lines.append(guide_desc)
         return "\n".join(lines) + "\n\n"
 
+    # -------------------------
     def _safe_parse(self, text: str, task_type: str, sample_meta: Dict[str, Any]) -> Dict[str, Any]:
         try:
             p = parse_prediction(text, task_type, sample_meta)
@@ -188,6 +213,9 @@ class StructuredDecisionSignalsBuilder:
         global_parsed: Dict[int, Dict[str, Any]],
         other_global_indices: List[int],
     ) -> Tuple[Optional[int], Optional[int]]:
+        """
+        Kept for compatibility / future analysis
+        """
         scored: List[Tuple[int, int]] = []
 
         for j in other_global_indices:
@@ -228,6 +256,9 @@ class StructuredDecisionSignalsBuilder:
         global_parsed: Dict[int, Dict[str, Any]],
         majority_key: str,
     ) -> str:
+        """
+        Kept for compatibility / future analysis
+        """
         if best_other_idx is None:
             return "n/a"
 
@@ -259,7 +290,78 @@ class StructuredDecisionSignalsBuilder:
             return "weaker"
         return "similar"
 
+    def _internal_progress_potential(
+        self,
+        self_parsed_ok: bool,
+        self_has_final_answer: bool,
+        completeness: str,
+        distinct_answers: int,
+        majority_margin: int,
+        agree_count: int,
+        max_others: int,
+        same_as_prev: bool,
+    ) -> str:
+        """
+        Heuristic proxy for whether internal actions (EVAL/CREATE) are likely to be fruitful.
+        Output: low / medium / high
+        """
+        # if group has a clear majority, internal path likely exists
+        if majority_margin >= 2:
+            return "high"
+        if majority_margin == 1 and distinct_answers <= max(2, max_others):  # weak majority + limited diversity
+            return "medium"
+        self_reliable = self_parsed_ok and self_has_final_answer and completeness != "low"
+        if self_reliable and same_as_prev and distinct_answers >= 2:
+            return "medium"
+        if majority_margin == 0 and (not self_reliable):
+            return "low"
+
+        # fallback
+        if majority_margin == 0 and distinct_answers >= 2:
+            return "low"
+
+        return "medium"
+
+    # control/offloading cues
+    def _external_help_level(
+        self,
+        self_parsed_ok: bool,
+        self_has_final_answer: bool,
+        completeness: str,
+        distinct_answers: int,
+        majority_margin: int,
+        agree_count: int,
+        max_others: int,
+        same_as_prev: bool,
+    ) -> str:
+        """
+        Heuristic proxy for metacognitive control / cognitive offloading.
+        Output: low / medium / high
+        """
+        # strong red flags on self usability
+        self_unreliable = (not self_parsed_ok) or (not self_has_final_answer) or (completeness == "low")
+        group_unresolved = (distinct_answers >= max(2, max_others + 1)) or (majority_margin == 0)
+        isolated = (max_others > 0 and agree_count == 0 and distinct_answers >= 2)
+        # stable but wrong? instability can be a mild signal
+        unstable = (not same_as_prev) and (distinct_answers >= 2)
+
+        if self_unreliable and (group_unresolved or isolated):
+            return "high"
+        if group_unresolved and isolated:
+            return "high"
+        if self_unreliable and unstable:
+            return "high"
+
+        if self_unreliable or group_unresolved or isolated:
+            return "medium"
+
+        return "low"
+
+
     def _text_overlap_label(self, a: str, b: str) -> str:
+        """
+        Kept for compatibility / future analysis
+        """
         sa = self._simple_token_set(a)
         sb = self._simple_token_set(b)
         if not sa or not sb:
