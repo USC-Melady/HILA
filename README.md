@@ -168,6 +168,243 @@ conda env update -f environment.yaml --prune
 conda activate hila
 ```
 
+
+## 🚀 Running the Code
+
+We provide **6 execution modes** to support different experimental settings, including basic MAS collaboration, LoRA-based evaluation, real-time interactive human intervention, and training.
+
+> **Tip:** Run all scripts from the project root:
+> ```bash
+> bash <script_name>.sh
+> ```
+
+---
+
+### ① 🧠 Basic MAS Collaboration (vLLM Agent + OpenAI Human)
+
+This is the **default pipeline**: configure the vLLM base model and the OpenAI human expert model, then run the full MAS collaboration workflow.
+
+- 📌 Script: `run_mas.sh`
+
+```bash
+#!/usr/bin/env bash
+#set -euo pipefail
+
+# ====== Experiment ======
+DATASET="gsm8k"
+SPLIT="test"
+DATA_ROOT="data"
+LIMIT=10000
+
+# ====== Agent (vLLM) ======
+MODEL="meta-llama/Llama-3.1-8B-Instruct"
+TOKENIZER_MODEL="$MODEL"
+
+# ====== Human (OpenAI) ======
+HUMAN_OPENAI_MODEL="gpt-4o-mini"
+
+# ====== Output ======
+OUT_JSONL="outputs/mas_collaboration_vllm_openai.jsonl"
+
+python main.py \
+  --mode mas_collaboration \
+  --dataset "$DATASET" \
+  --split "$SPLIT" \
+  --data_root "$DATA_ROOT" \
+  --limit "$LIMIT" \
+  --agent_backend vllm \
+  --model "$MODEL" \
+  --tokenizer_model "$TOKENIZER_MODEL" \
+  --human_openai_model "$HUMAN_OPENAI_MODEL" \
+  --out_jsonl "$OUT_JSONL"
+```
+
+### ② 🧩 MAS Collaboration with LoRA (vLLM + LoRA Adapter)
+
+This mode runs the same pipeline, but loads a trained LoRA adapter on top of the base vLLM model (useful for evaluating fine-tuned checkpoints).
+
+- 📌 Script: `run_mas_lora.sh`
+
+```bash
+#!/usr/bin/env bash
+#set -euo pipefail
+
+# ====== Experiment ======
+DATASET="mmlu"
+SPLIT="test"
+DATA_ROOT="data"
+LIMIT=10000
+
+# ====== Agent (vLLM + LoRA) ======
+BASE_MODEL="meta-llama/Llama-3.1-8B-Instruct"
+TOKENIZER_MODEL="$BASE_MODEL"
+LORA_PATH="./checkpoints/LLAMA-8B"
+
+# ====== Human (OpenAI) ======
+HUMAN_OPENAI_MODEL="gpt-4o-mini"
+
+# ====== Output ======
+OUT_JSONL="outputs/mas_collaboration_vllm_openai_lora.jsonl"
+
+python main.py \
+  --mode mas_collaboration \
+  --dataset "$DATASET" \
+  --split "$SPLIT" \
+  --data_root "$DATA_ROOT" \
+  --limit "$LIMIT" \
+  --agent_backend vllm \
+  --base_model "$BASE_MODEL" \
+  --tokenizer_model "$TOKENIZER_MODEL" \
+  --lora_path "$LORA_PATH" \
+  --lora_name default_lora \
+  --lora_id 1 \
+  --human_openai_model "$HUMAN_OPENAI_MODEL" \
+  --out_jsonl "$OUT_JSONL"
+```
+
+### ③ 💬 Interactive Human-in-the-Loop (Real-Time Terminal Input)
+
+In this mode, whenever an agent chooses `DEFER`, the system will print the request context and wait for real-time human input in the terminal.
+
+- 📌 Script: `run_mas_interactive.sh`
+
+```bash
+#!/usr/bin/env bash
+#set -euo pipefail
+
+# ====== Experiment ======
+DATASET="gsm8k"
+SPLIT="test"
+DATA_ROOT="data"
+LIMIT=10000
+
+# ====== Agent (vLLM) ======
+MODEL="meta-llama/Llama-3.1-8B-Instruct"
+TOKENIZER_MODEL="$MODEL"
+
+# ====== Output ======
+OUT_JSONL="outputs/mas_collaboration_interactive.jsonl"
+
+python main.py \
+  --mode mas_collaboration \
+  --dataset "$DATASET" \
+  --split "$SPLIT" \
+  --data_root "$DATA_ROOT" \
+  --limit "$LIMIT" \
+  --agent_backend vllm \
+  --model "$MODEL" \
+  --tokenizer_model "$TOKENIZER_MODEL" \
+  --interaction_mode interactive \
+  --interactive_multiline \
+  --out_jsonl "$OUT_JSONL"
+```
+
+### ④ 🧑‍🏫 Human Active Hints (Proactive Human Guidance at Initialization)
+
+In this setting, real humans proactively provide helpful guidance at Round-0 initialization via `human_idea` or `human_reasoning`.
+
+- 📌 Script: `run_mas_human_active.sh`
+- 🔧 Key switch: `ACTIVE_SOURCE="human_idea"` (or `human_reasoning`)
+
+```bash
+#!/usr/bin/env bash
+#set -euo pipefail
+
+# ====== Experiment ======
+DATASET="gsm8k"
+SPLIT="human"
+DATA_ROOT="data"
+LIMIT=10000
+
+# ====== Agent (vLLM) ======
+MODEL="meta-llama/Llama-3.1-8B-Instruct"
+TOKENIZER_MODEL="$MODEL"
+
+ACTIVE_SOURCE="human_idea"  # human_reasoning
+
+# ====== Human (OpenAI) ======
+HUMAN_OPENAI_MODEL="gpt-4o-mini"
+
+# ====== Output ======
+OUT_JSONL="outputs/mas_collaboration_human_active_idea.jsonl"
+
+python main.py \
+  --mode mas_collaboration \
+  --dataset "$DATASET" \
+  --split "$SPLIT" \
+  --data_root "$DATA_ROOT" \
+  --limit "$LIMIT" \
+  --agent_backend vllm \
+  --model "$MODEL" \
+  --tokenizer_model "$TOKENIZER_MODEL" \
+  --human_openai_model "$HUMAN_OPENAI_MODEL" \
+  --human_active_flag \
+  --active_source "$ACTIVE_SOURCE" \
+  --out_jsonl "$OUT_JSONL"
+```
+
+### ⑤ 🧑‍💻 Human Passive Feedback (Use Stored Human Reasoning)
+
+This mode enables passive human supervision: if an agent chooses `DEFER`, the system directly uses the stored field `human_reasoning` in `sample.meta` instead of calling OpenAI or waiting for interactive input.
+
+- 📌 Script: `run_mas_human_passive.sh`
+
+```bash
+#!/usr/bin/env bash
+#set -euo pipefail
+
+# ====== Experiment ======
+DATASET="gsm8k"
+SPLIT="human"
+DATA_ROOT="data"
+LIMIT=10000
+
+# ====== Agent (vLLM) ======
+MODEL="meta-llama/Llama-3.1-8B-Instruct"
+TOKENIZER_MODEL="$MODEL"
+
+# ====== Output ======
+OUT_JSONL="outputs/mas_collaboration_human_passive.jsonl"
+
+python main.py \
+  --mode mas_collaboration \
+  --dataset "$DATASET" \
+  --split "$SPLIT" \
+  --data_root "$DATA_ROOT" \
+  --limit "$LIMIT" \
+  --agent_backend vllm \
+  --model "$MODEL" \
+  --tokenizer_model "$TOKENIZER_MODEL" \
+  --human_passive_flag \
+  --out_jsonl "$OUT_JSONL"
+```
+
+### ⑥ 🏋️ Training Mode (SFT Trainer)
+
+We also provide training scripts for running SFT fine-tuning using the unified training entrypoint under `src/train.py`.
+
+- 📌 Script: `run_train_sft_mode.sh`
+
+```bash
+python3 -m src.train \
+  --trainer sft \
+  --train_jsonl ./offline_data/sft_gsm8k_gpt4o_withtestall.jsonl \
+  --init_adapter outputs/grpo1/final \
+  --output_dir outputs/sft_llama_8B \
+  --model meta-llama/Llama-3.1-8B-Instruct \
+  --epochs 4 \
+  --per_device_batch_size 1 \
+  --grad_accum_steps 8 \
+  --lr 1e-4 \
+  --kl_beta 0.0 \
+  --save_every 40 \
+  --max_prompt_tokens 512 \
+  --max_completion_tokens 768
+```
+
+
+
+
 ### Suggested Dependency Stack
 
 This project typically relies on the following ecosystem:
