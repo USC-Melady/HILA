@@ -431,128 +431,6 @@ python3 -m src.train \
   --max_completion_tokens 768
 ```
 
-
-
-
----
-
-## 🚀 Running Inference / Data Generation
-
-This repository supports two main runtime modes:
-
-- **`debate`**: run the multi-agent debate / collaboration pipeline for inference
-- **`grpo_data`**: generate grouped data for GRPO-style training or downstream policy optimization
-
-At a high level, the runtime script exposes configurable options for:
-
-- dataset and split selection,
-- number of agents and debate rounds,
-- local vs API-based agent backend,
-- model / checkpoint / LoRA loading,
-- decoding behavior,
-- output file destinations,
-- human expert backend configuration.
-
-### Core Runtime Arguments
-
-Below are the most important configurable arguments:
-
-#### General mode and data
-- `--mode`  
-  Selects the execution mode. Typical choices:
-  - `debate`
-  - `grpo_data`
-
-- `--dataset`  
-  Specifies which dataset to run on (e.g., `gsm8k`).
-
-- `--split`  
-  Specifies the dataset split (e.g., `human`, `test`, etc.).
-
-- `--data_root`  
-  Root directory for local dataset files.
-
-- `--limit`  
-  Maximum number of examples to process.
-
-#### Multi-agent collaboration
-- `--agents`  
-  Number of collaborating agents.
-
-- `--rounds`  
-  Number of discussion / debate rounds.
-
-#### Agent backend
-- `--agent_backend`  
-  Selects the backend used by the agents:
-  - `vllm` for local model serving
-  - `openai` for API-based model inference
-
-#### Model loading (vLLM backend)
-- `--model`  
-  Model identifier or local model path. Can point to a merged model or a directly loadable checkpoint.
-
-- `--base_model`  
-  Base model path / identifier, especially useful when using LoRA adapters.
-
-- `--lora_path`  
-  Path to the PEFT LoRA adapter directory.
-
-- `--lora_name`  
-  Logical name for the loaded LoRA adapter.
-
-- `--lora_id`  
-  Logical numeric identifier for the LoRA adapter.
-
-- `--max_lora_rank`  
-  Maximum LoRA rank supported by the runtime.
-
-- `--dtype`  
-  Runtime precision (e.g., `bfloat16`, `float16`, `float32`, or `auto`).
-
-#### Decoding parameters
-- `--max_tokens`  
-  Maximum number of generated tokens per response.
-
-- `--temperature`  
-  Sampling temperature for agent generation.
-
-- `--top_p`  
-  Nucleus sampling threshold.
-
-- `--seed`  
-  Random seed for reproducibility.
-
-#### Output formatting
-- `--force_boxed` / `--no_force_boxed`  
-  Controls whether final answers are forced into `\boxed{...}` format.
-
-#### Output files
-- `--out_jsonl`  
-  Output JSONL file for per-sample debate results.
-
-- `--out_grpo_jsonl`  
-  Output JSONL file for grouped GRPO data.
-
-#### OpenAI backend (agent)
-- `--openai_model`
-- `--openai_api_key`
-- `--openai_concurrency`
-- `--openai_timeout`
-
-These control API-based inference when `--agent_backend openai` is used.
-
-#### Human expert backend
-- `--human_openai_model`
-- `--human_openai_api_key`
-- `--human_openai_concurrency`
-- `--human_openai_timeout`
-- `--human_max_tokens`
-- `--human_temperature`
-- `--human_top_p`
-
-These configure the external “human expert” proxy used in the HILA pipeline (typically implemented with a stronger API model).
-
 ---
 
 ### Training Notes
@@ -578,11 +456,10 @@ A clean repository layout may include files such as:
 ├── environment.yaml
 ├── environment.txt
 ├── run.sh
-├── train_main.sh
-├── train_main.py
+├── main.py
 ├── data/
 ├── outputs/
-├── sft_data/
+├── checkpoints/
 └── ...
 ```
 
