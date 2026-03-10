@@ -168,6 +168,37 @@ conda env update -f environment.yaml --prune
 conda activate hila
 ```
 
+### Suggested Dependency Stack
+
+This project typically relies on the following ecosystem:
+
+- **PyTorch**
+- **Transformers**
+- **vLLM**
+- **PEFT / LoRA**
+- **OpenAI Python SDK**
+- **Accelerate**
+- **Datasets**
+- common scientific Python tooling (`numpy`, `tqdm`, etc.)
+
+> We recommend using the provided environment files instead of manually pinning versions unless you have a strong reason to customize the stack.
+
+---
+
+### Practical Setup Tips
+
+Before running the code, please double-check the following:
+
+- Make sure your **CUDA** and driver versions are compatible with your installed **PyTorch** and **vLLM** versions.
+- For **local multi-agent inference**, a **GPU-backed environment** is strongly recommended.
+- For **OpenAI-backed runs**, please configure your API key in:
+
+```python
+# ./src/models/constants.py
+API_KEY = ""
+```
+
+---
 
 ## 🚀 Running the Code
 
@@ -402,36 +433,6 @@ python3 -m src.train \
 
 
 
-
-### Suggested Dependency Stack
-
-This project typically relies on the following ecosystem:
-
-- **PyTorch**
-- **Transformers**
-- **vLLM**
-- **PEFT / LoRA**
-- **OpenAI Python SDK**
-- **Accelerate**
-- **Datasets**
-- common scientific Python tooling (`numpy`, `tqdm`, etc.)
-
-> We recommend using the provided environment files instead of manually pinning versions unless you have a strong reason to customize the stack.
-
-### Practical Setup Tips
-
-- Make sure your CUDA / driver version is compatible with your installed PyTorch and vLLM versions.
-- For **local multi-agent inference**, a GPU-backed environment is strongly recommended.
-- For **OpenAI-backed runs**, ensure your API key is exported or passed explicitly:
-  
-```bash
-export OPENAI_API_KEY=your_key_here
-```
-
-- If you are running on a cluster or server, verify:
-  - sufficient GPU memory,
-  - network access (for API-based calls),
-  - correct filesystem paths for datasets and checkpoints.
 
 ---
 
