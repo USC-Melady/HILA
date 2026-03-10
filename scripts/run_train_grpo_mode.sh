@@ -1,10 +1,9 @@
 python3 -m src.train \
   --trainer grpo \
-  --train_jsonl ./offline_data/gsm8k_grpo_groups2_train.jsonl \
-  --output_dir outputs/grpo_run222 \
+  --train_jsonl ./offline_data/data.jsonl \
+  --output_dir outputs/ \
   --model meta-llama/Llama-3.1-8B-Instruct \
   --epochs 2 \
-  --max_prompt_tokens 512 \
   --save_every 50 \
   --per_device_batch_size 1 \
   --grad_accum_steps 32 \
